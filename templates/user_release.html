@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Release Parking Spot</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .release-card {
+            max-width: 600px;
+            margin: 50px auto;
+        }
+    </style>
+</head>
+
+<body>
+<div id="app">
+
+    <!-- NAVBAR -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-success">
+        <div class="container-fluid">
+            <span class="navbar-brand">🚗 Release Parking Spot</span>
+
+            <div class="d-flex">
+                <a href="/user" class="btn btn-light btn-sm me-2">Dashboard</a>
+                <a href="/user/book" class="btn btn-light btn-sm me-2">Book Spot</a>
+                <a href="/user/history" class="btn btn-light btn-sm me-2">History</a>
+                <button class="btn btn-outline-light btn-sm" @click="logout">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+
+    <div class="container">
+        <div class="card release-card shadow">
+            <div class="card-body p-4">
+
+                <h4 class="card-title mb-4">Release Your Parking Spot</h4>
+
+                <div v-if="errorMsg" class="alert alert-danger">[[ errorMsg ]]</div>
+
+                <!-- Form Section -->
+                <div v-if="!releaseSuccess">
+
+                    <p class="text-muted mb-4">
+                        Enter your Reservation ID to release the parking spot and calculate charges.
+                    </p>
+
+                    <div class="mb-3">
+                        <label class="form-label">Reservation ID</label>
+                        <input type="text"
+                               v-model="reservationId"
+                               class="form-control form-control-lg"
+                               placeholder="Enter reservation ID">
+                    </div>
+
+                    <button class="btn btn-warning btn-lg w-100"
+                            @click="releaseSpot"
+                            :disabled="!reservationId || loading">
+                        <span v-if="loading">Processing...</span>
+                        <span v-else>Release Spot</span>
+                    </button>
+
+                </div>
+
+                <!-- Success Section -->
+                <div v-else class="text-center">
+
+                    <div class="alert alert-success">
+                        <h5>✅ Spot Released Successfully!</h5>
+                    </div>
+
+                    <div class="card bg-light mb-3">
+                        <div class="card-body">
+                            <h6 class="text-muted">Parking Duration</h6>
+                            <h3 class="text-primary">[[ releaseData.hours ]] hours</h3>
+                        </div>
+                    </div>
+
+                    <div class="card bg-light mb-4">
+                        <div class="card-body">
+                            <h6 class="text-muted">Total Cost</h6>
+                            <h2 class="text-success">₹[[ releaseData.total_cost ]]</h2>
+                        </div>
+                    </div>
+
+                    <p class="text-muted mb-3">Thank you for using our parking service!</p>
+
+                    <div class="d-grid gap-2">
+                        <a href="/user" class="btn btn-primary">Back to Dashboard</a>
+                        <a href="/user/history" class="btn btn-outline-secondary">View History</a>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/vue@2.6.14"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+<script>
+new Vue({
+    el: "#app",
+    delimiters: ["[[", "]]"],
+    data: {
+        reservationId: null,
+        loading: false,
+        releaseSuccess: false,
+        errorMsg: "",
+        releaseData: {}
+    },
+    mounted() {
+        this.fetchActiveReservation();
+    },
+    methods: {
+        logout() {
+            localStorage.removeItem("token");
+            window.location.href = "/login";
+        },
+
+        async fetchActiveReservation() {
+            try {
+                const token = localStorage.getItem("token");
+                const res = await axios.get("/api/user/active", {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+
+                if (res.data && res.data.reservation_id) {
+                    this.reservationId = res.data.reservation_id;
+                    console.log("Active Reservation Found:", this.reservationId);
+                } else {
+                    this.errorMsg = "No active booking found!";
+                }
+            } catch {
+                this.errorMsg = "Unable to load active booking!";
+            }
+        },
+
+        async releaseSpot() {
+            if (!this.reservationId) {
+                this.errorMsg = "No active reservation found!";
+                return;
+            }
+
+            this.loading = true;
+            this.errorMsg = "";
+
+            try {
+                const token = localStorage.getItem("token");
+                const res = await axios.post(`/api/user/release/${this.reservationId}`, {}, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+
+                this.releaseData = res.data;
+                this.releaseSuccess = true;
+            } catch (err) {
+                this.errorMsg = err.response?.data?.error || "Error releasing spot!";
+            }
+
+            this.loading = false;
+        }
+    }
+});
+</script>
+
+
+</body>
+</html>

@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Vehicle Parking App</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: linear-gradient(135deg, #f5f5f7 0%, #efefef 100%);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            min-height: 100vh;
+        }
+        .nav-custom {
+            background: #ffffff;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .nav-custom h4 {
+            background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.5px;
+        }
+        .navbar-actions { display: flex; gap: 10px; }
+        .btn-outline-dark { border: 2px solid #e5e7eb; color: #374151; font-weight: 500; }
+        .btn-outline-dark:hover { border-color: #2563eb; background: rgba(37, 99, 235, 0.05); color: #2563eb; }
+        .btn-dark { background: #111827; border: none; font-weight: 500; }
+        .btn-dark:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+        .section-header { margin-bottom: 24px; position: relative; }
+        .section-header h3 {
+            font-size: 24px;
+            font-weight: 600;
+            color: #111827;
+            letter-spacing: -0.5px;
+            padding-bottom: 8px;
+        }
+        .section-header h3::after {
+            content: ''; position: absolute; bottom: 0; left: 0;
+            width: 60px; height: 3px; background: #2563eb; border-radius: 2px;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+            gap: 20px;
+            margin-bottom: 32px;
+        }
+        .card-soft {
+            border-radius: 16px;
+            background: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            border: 1px solid #f3f4f6;
+            padding: 18px 20px;
+        }
+        .stat-label { font-size: 13px; font-weight: 600; color: #9ca3af; margin-bottom: 8px; }
+        .stat-value { font-size: 30px; font-weight: 700; color: #111827; }
+    </style>
+</head>
+
+<body>
+<div id="app">
+
+    <!-- NAVBAR -->
+    <nav class="navbar navbar-expand-lg nav-custom py-3 sticky-top">
+        <div class="container-fluid">
+            <h4 class="fw-bold mb-0">🚗 Admin Dashboard</h4>
+            <div class="navbar-actions ms-auto">
+                <a href="/admin/lots" class="btn btn-outline-dark btn-sm">Manage Lots</a>
+                <button class="btn btn-dark btn-sm" @click="logout">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- MAIN CONTENT -->
+    <div class="container mt-4 mb-5">
+
+        <!-- SUMMARY -->
+        <div class="section-header"><h3>Dashboard Overview</h3></div>
+
+        <div class="stats-grid">
+            <div class="card-soft" v-for="(value, key) in summaryLabels" :key="key">
+                <p class="stat-label">[[ value.label ]]</p>
+                <p class="stat-value text-primary mb-0">[[ summary[key] ?? 0 ]]</p>
+            </div>
+        </div>
+
+        <!-- CHART -->
+        <div class="section-header mt-4"><h3>Parking Spot Status Chart</h3></div>
+        <div class="card-soft mb-4">
+           <div style="width:200px;height:200px;margin:auto;">
+    <canvas id="spotChart"></canvas>
+</div>
+
+
+        </div>
+
+        <!-- SPOTS TABLE -->
+        <div class="section-header mt-4"><h3>Parking Spot Status</h3></div>
+        <div class="card-soft table-responsive">
+            <table class="table align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Spot ID</th>
+                        <th>Lot Name</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="spot in spots" :key="spot.id">
+                        <td>[[ spot.id ]]</td>
+                        <td>[[ spot.lot_name ]]</td>
+                        <td>
+                            <span v-if="spot.status === 'A'" class="badge bg-success">Available</span>
+                            <span v-else class="badge bg-danger">Occupied</span>
+                        </td>
+                        <td>
+                            <button v-if="spot.status === 'O'"
+                                    class="btn btn-sm btn-outline-primary"
+                                    @click="fetchDetails(spot.id)">
+                                View Details
+                            </button>
+                            <span v-else>—</span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- USERS TABLE -->
+        <div class="section-header mt-5"><h3>Registered Users</h3></div>
+        <div class="card-soft table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>ID</th>
+                        <th>Username</th>
+                        <th>Email</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="u in users" :key="u.id">
+                        <td>[[ u.id ]]</td>
+                        <td>[[ u.username ]]</td>
+                        <td>[[ u.email ]]</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
+    <!-- SPOT DETAILS MODAL (inside #app so Vue can bind) -->
+    <div class="modal fade" id="spotDetailsModal" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Spot Details</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <p v-if="details.status === 'Available'" class="text-success fw-semibold">
+                This spot is currently free.
+            </p>
+            <div v-else-if="details.status === 'Occupied'">
+              <p><strong>User:</strong> [[ details.user.username ]]</p>
+              <p><strong>Email:</strong> [[ details.user.email ]]</p>
+              <p><strong>Parked On:</strong> [[ details.reservation.start_time ]]</p>
+              <p><strong>Duration:</strong> [[ details.reservation.duration_hours ]] hours</p>
+            </div>
+            <p v-else class="text-muted mb-0">
+                Unable to load details.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vue@3.3.4/dist/vue.global.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+<script>
+const { createApp } = Vue;
+
+createApp({
+    delimiters: ['[[', ']]'],
+
+    data() {
+        return {
+            summary: {
+                total_lots: 0,
+                total_spots: 0,
+                available_spots: 0,
+                occupied_spots: 0,
+                registered_users: 0
+            },
+            summaryLabels: {
+                total_lots: { label: "Total Parking Lots" },
+                total_spots: { label: "Total Spots" },
+                available_spots: { label: "Free Spots" },
+                occupied_spots: { label: "Occupied Spots" },
+                registered_users: { label: "Registered Users" }
+            },
+            spots: [],
+            users: [],
+            details: {},
+            spotChart: null
+        };
+    },
+
+    async mounted() {
+        if (!localStorage.getItem("token")) {
+            this.logout();
+            return;
+        }
+
+        await Promise.all([
+            this.fetchSummary(),
+            this.fetchSpots(),
+            this.fetchUsers()
+        ]);
+
+        // Auto-refresh summary and spots every 10s (optional)
+        setInterval(() => {
+            this.fetchSummary();
+            this.fetchSpots();
+        }, 10000);
+    },
+
+    methods: {
+        async secureGet(url) {
+            return axios.get(url, {
+                headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+            });
+        },
+
+        async fetchSummary() {
+            try {
+                const res = await this.secureGet("/api/admin/dashboard_summary");
+                this.summary = res.data;
+                this.drawChart();
+            } catch (e) {
+                console.error(e);
+            }
+        },
+
+        async fetchSpots() {
+            try {
+                const res = await this.secureGet("/api/admin/spots");
+                this.spots = res.data;
+            } catch (e) {
+                console.error(e);
+            }
+        },
+
+        async fetchUsers() {
+            try {
+                const res = await this.secureGet("/api/admin/users");
+                this.users = res.data;
+            } catch (e) {
+                console.error(e);
+            }
+        },
+
+        drawChart() {
+            const ctx = document.getElementById("spotChart");
+            if (!ctx) return;
+
+            const data = {
+                labels: ["Available Spots", "Occupied Spots"],
+                datasets: [{
+                    data: [this.summary.available_spots || 0, this.summary.occupied_spots || 0]
+                }]
+            };
+
+            if (this.spotChart) {
+                this.spotChart.destroy();
+            }
+
+            this.spotChart = new Chart(ctx, {
+                type: "doughnut",
+                data: data
+            });
+        },
+
+        async fetchDetails(id) {
+            try {
+                const res = await this.secureGet(`/api/admin/spot-details/${id}`);
+                this.details = res.data;
+                new bootstrap.Modal(document.getElementById("spotDetailsModal")).show();
+            } catch (e) {
+                console.error(e);
+                alert("Error loading spot details");
+            }
+        },
+
+        logout() {
+            localStorage.clear();
+            window.location.href = "/";
+        }
+    }
+}).mount("#app");
+</script>
+
+</body>
+</html>

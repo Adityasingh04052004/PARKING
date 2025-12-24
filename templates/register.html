@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - Vehicle Parking App</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 25%, #1a1a2e 50%, #16213e 75%, #0f3460 100%);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            padding: 20px;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .register-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            max-width: 420px;
+            width: 100%;
+            animation: slideUp 0.6s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .card-header-section {
+            padding: 40px 40px 30px;
+            text-align: center;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .card-header-section h2 {
+            font-size: 32px;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+        }
+
+        .card-header-section h5 {
+            color: #9ca3af;
+            font-weight: 500;
+            font-size: 14px;
+            letter-spacing: 0.3px;
+        }
+
+        .card-body {
+            padding: 40px;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #374151;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .form-control {
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 12px 16px;
+            font-size: 15px;
+            transition: all 0.3s ease;
+            background: #f9fafb;
+        }
+
+        .form-control:focus {
+            background: white;
+            border-color: #0099ff;
+            box-shadow: 0 0 0 4px rgba(0, 153, 255, 0.1);
+            outline: none;
+        }
+
+        .form-control::placeholder {
+            color: #d1d5db;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-group:last-of-type {
+            margin-bottom: 32px;
+        }
+
+        .alert {
+            border-radius: 12px;
+            border: none;
+            margin-bottom: 24px;
+            padding: 14px 16px;
+            font-size: 14px;
+            font-weight: 500;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .alert-danger {
+            background: rgba(239, 68, 68, 0.1);
+            color: #dc2626;
+            border-left: 4px solid #ef4444;
+        }
+
+        .alert-success {
+            background: rgba(34, 197, 94, 0.1);
+            color: #16a34a;
+            border-left: 4px solid #22c55e;
+        }
+
+        .btn-register {
+            background: linear-gradient(135deg, #00d4ff 0%, #0099ff 50%, #0066ff 100%);
+            border: none;
+            border-radius: 12px;
+            padding: 14px;
+            font-weight: 600;
+            font-size: 15px;
+            color: white;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            width: 100%;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 15px rgba(0, 153, 255, 0.4);
+        }
+
+        .btn-register:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 153, 255, 0.5);
+        }
+
+        .btn-register:active:not(:disabled) {
+            transform: translateY(0);
+            box-shadow: 0 2px 10px rgba(0, 153, 255, 0.4);
+        }
+
+        .btn-register:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .login-link-section {
+            text-align: center;
+            padding-top: 24px;
+            border-top: 1px solid #f0f0f0;
+        }
+
+        .login-link-section p {
+            color: #6b7280;
+            font-size: 14px;
+            margin: 0;
+        }
+
+        .login-link-section a {
+            color: #0099ff;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin-left: 4px;
+        }
+
+        .login-link-section a:hover {
+            color: #00d4ff;
+            text-decoration: underline;
+        }
+
+        .form-input-wrapper {
+            position: relative;
+        }
+
+        @media (max-width: 480px) {
+            .register-card {
+                border-radius: 16px;
+            }
+
+            .card-header-section {
+                padding: 30px 24px 20px;
+            }
+
+            .card-header-section h2 {
+                font-size: 26px;
+            }
+
+            .card-body {
+                padding: 24px;
+            }
+
+            .form-label {
+                font-size: 12px;
+            }
+
+            .form-control {
+                font-size: 14px;
+                padding: 11px 14px;
+            }
+
+            .btn-register {
+                padding: 12px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div id="app">
+    <div class="register-card">
+
+        <div class="card-header-section">
+            <h2>🅿️ ParkWithEase</h2>
+            <h5>Create your account</h5>
+        </div>
+
+        <div class="card-body">
+
+            <div v-if="errorMsg" class="alert alert-danger">
+                ⚠️ [[ errorMsg ]]
+            </div>
+
+            <div v-if="successMsg" class="alert alert-success">
+                ✓ [[ successMsg ]]
+            </div>
+
+            <form @submit.prevent="handleRegister">
+
+                <div class="form-group">
+                    <label class="form-label">Username</label>
+                    <input v-model="username" type="text" class="form-control" placeholder="Choose a username" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Email Address</label>
+                    <input v-model="email" type="email" class="form-control" placeholder="Enter your email" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <input v-model="password" type="password" class="form-control" placeholder="At least 4 characters" required minlength="4">
+                </div>
+
+                <button type="submit" class="btn-register" :disabled="loading">
+                    <span v-if="loading">⏳ Creating account...</span>
+                    <span v-else>Register</span>
+                </button>
+
+            </form>
+
+            <div class="login-link-section">
+                <p>
+                    Already have an account?
+                    <a href="/">Login here</a>
+                </p>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/vue@3.3.4/dist/vue.global.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios@1.5.0/dist/axios.min.js"></script>
+
+<script>
+const { createApp } = Vue;
+
+createApp({
+    delimiters: ["[[", "]]"],
+
+    data() {
+        return {
+            username: "",
+            email: "",
+            password: "",
+            errorMsg: "",
+            successMsg: "",
+            loading: false
+        };
+    },
+
+    methods: {
+        async handleRegister() {
+            this.errorMsg = "";
+            this.successMsg = "";
+            this.loading = true;
+
+            const username = this.username.trim();
+            const email = this.email.trim();
+            const password = this.password.trim();
+
+            if (password.length < 4) {
+                this.errorMsg = "Password must be at least 4 characters.";
+                this.loading = false;
+                return;
+            }
+
+            try {
+                await axios.post("/api/register", {
+                    username,
+                    email,
+                    password
+                });
+
+                this.successMsg = "Registration successful! Redirecting...";
+
+                setTimeout(() => {
+                    window.location.href = "/";
+                }, 1500);
+
+            } catch (error) {
+                this.errorMsg = error.response?.data?.error || "Registration failed";
+            } finally {
+                this.loading = false;
+            }
+        }
+    }
+}).mount("#app");
+</script>
+
+</body>
+</html>

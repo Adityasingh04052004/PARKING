@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - ParkWithEase</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 25%, #1a1a2e 50%, #16213e 75%, #0f3460 100%);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Floating elements background */
+        .floating-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .float-icon {
+            position: absolute;
+            font-size: 60px;
+            opacity: 0.08;
+        }
+
+        .float-icon:nth-child(1) { top: 10%; left: 5%; }
+        .float-icon:nth-child(2) { top: 60%; right: 8%; font-size: 80px; }
+        .float-icon:nth-child(3) { bottom: 15%; left: 12%; font-size: 50px; }
+        .float-icon:nth-child(4) { top: 30%; right: 15%; font-size: 70px; }
+
+        .login-container {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            gap: 40px;
+            align-items: center;
+            max-width: 900px;
+            width: 100%;
+        }
+
+        /* LEFT SIDE - WELCOME MESSAGE */
+        .welcome-section {
+            display: none;
+            flex: 1;
+            color: white;
+            animation: slideInLeft 0.8s ease-out;
+        }
+
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .welcome-section h1 {
+            font-size: 42px;
+            font-weight: 800;
+            margin-bottom: 16px;
+            line-height: 1.2;
+            letter-spacing: -1px;
+        }
+
+        .welcome-section p {
+            font-size: 18px;
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 32px;
+            line-height: 1.6;
+        }
+
+        .feature-list {
+            list-style: none;
+            margin-bottom: 32px;
+        }
+
+        .feature-list li {
+            font-size: 15px;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .feature-list li::before {
+            content: '✓';
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            background: rgba(0, 212, 255, 0.2);
+            border: 2px solid #00d4ff;
+            border-radius: 50%;
+            font-size: 12px;
+            color: #00d4ff;
+            font-weight: bold;
+        }
+
+        /* RIGHT SIDE - LOGIN FORM */
+        .login-card {
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 25px 70px rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            width: 100%;
+            max-width: 420px;
+            animation: slideInRight 0.8s ease-out;
+            overflow: hidden;
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .card-header-section {
+            padding: 40px 40px 30px;
+            text-align: center;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .brand-logo {
+            font-size: 40px;
+            margin-bottom: 12px;
+            display: inline-block;
+        }
+
+        .card-header-section h2 {
+            font-size: 28px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #0099ff 0%, #0066ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+        }
+
+        .card-header-section h5 {
+            color: #9ca3af;
+            font-weight: 500;
+            font-size: 14px;
+            letter-spacing: 0.3px;
+        }
+
+        .card-body {
+            padding: 40px;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+            position: relative;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #374151;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9ca3af;
+            font-size: 18px;
+            transition: all 0.3s ease;
+            z-index: 1;
+        }
+
+        .form-control {
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 14px 16px 14px 44px;
+            font-size: 15px;
+            transition: all 0.3s ease;
+            background: #f9fafb;
+        }
+
+        .form-control:focus {
+            background: white;
+            border-color: #0099ff;
+            box-shadow: 0 0 0 4px rgba(0, 153, 255, 0.1);
+            outline: none;
+        }
+
+        .form-control:focus + .input-icon {
+            color: #0099ff;
+            transform: translateY(-50%) scale(1.2);
+        }
+
+        .form-control::placeholder {
+            color: #d1d5db;
+        }
+
+        .form-group:last-of-type {
+            margin-bottom: 32px;
+        }
+
+        .alert {
+            border-radius: 12px;
+            border: none;
+            margin-bottom: 24px;
+            padding: 14px 16px;
+            font-size: 14px;
+            font-weight: 500;
+            animation: slideDown 0.3s ease-out;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .alert-danger {
+            background: rgba(239, 68, 68, 0.1);
+            color: #dc2626;
+            border-left: 4px solid #ef4444;
+        }
+
+        .btn-login {
+            background: linear-gradient(135deg, #00d4ff 0%, #0099ff 50%, #0066ff 100%);
+            border: none;
+            border-radius: 12px;
+            padding: 14px;
+            font-weight: 600;
+            font-size: 15px;
+            color: white;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            width: 100%;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 15px rgba(0, 153, 255, 0.4);
+            cursor: pointer;
+        }
+
+        .btn-login:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 153, 255, 0.5);
+            background: linear-gradient(135deg, #00e5ff 0%, #00aaff 50%, #0077ff 100%);
+            color: white;
+        }
+
+        .btn-login:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        .btn-login:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-login span {
+            position: relative;
+            z-index: 1;
+        }
+
+        .register-link-section {
+            text-align: center;
+            padding-top: 24px;
+            border-top: 1px solid #f0f0f0;
+        }
+
+        .register-link-section p {
+            color: #6b7280;
+            font-size: 14px;
+            margin: 0;
+        }
+
+        .register-link-section a {
+            color: #0099ff;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin-left: 4px;
+            position: relative;
+        }
+
+        .register-link-section a::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 4px;
+            width: 0;
+            height: 2px;
+            background: #0099ff;
+            transition: width 0.3s ease;
+        }
+
+        .register-link-section a:hover {
+            color: #0066ff;
+        }
+
+        .register-link-section a:hover::after {
+            width: 100%;
+        }
+
+        @media (max-width: 768px) {
+            .login-container {
+                flex-direction: column;
+                gap: 0;
+            }
+
+            .welcome-section {
+                display: none;
+            }
+
+            .login-card {
+                max-width: 100%;
+            }
+
+            .float-icon {
+                font-size: 40px;
+                opacity: 0.05;
+            }
+
+            .card-header-section {
+                padding: 30px 24px 20px;
+            }
+
+            .card-header-section h2 {
+                font-size: 26px;
+            }
+
+            .card-body {
+                padding: 24px;
+            }
+
+            .form-label {
+                font-size: 12px;
+            }
+
+            .form-control {
+                font-size: 14px;
+                padding: 12px 14px 12px 40px;
+            }
+
+            .btn-login {
+                padding: 12px;
+                font-size: 14px;
+            }
+        }
+
+        @media (min-width: 768px) {
+            .welcome-section {
+                display: block;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="floating-bg">
+    <div class="float-icon">🚗</div>
+    <div class="float-icon">🅿️</div>
+    <div class="float-icon">🏢</div>
+    <div class="float-icon">⏱️</div>
+</div>
+
+<div id="app" class="login-container">
+
+    <!-- LEFT SIDE - WELCOME MESSAGE -->
+    <div class="welcome-section">
+        <h1>Welcome Back!</h1>
+        <p>Find, book, and manage parking spots effortlessly.</p>
+        
+        <ul class="feature-list">
+            <li>Real-time parking availability</li>
+            <li>Instant spot reservations</li>
+            <li>Track your bookings</li>
+            <li>Secure and reliable</li>
+        </ul>
+
+        <p style="font-size: 13px; color: rgba(255, 255, 255, 0.6);">
+            Join thousands of users simplifying their parking experience.
+        </p>
+    </div>
+
+    <!-- RIGHT SIDE - LOGIN FORM -->
+    <div class="login-card">
+
+        <div class="card-header-section">
+            <div class="brand-logo">🅿️</div>
+            <h2>ParkWithEase</h2>
+            <h5>Welcome back, let's get you parked</h5>
+        </div>
+
+        <div class="card-body">
+
+            <div v-if="errorMsg" class="alert alert-danger">
+                <span>⚠️</span>
+                <span>[[ errorMsg ]]</span>
+            </div>
+
+            <form @submit.prevent="handleLogin">
+                <div class="form-group">
+                    <label class="form-label">Username</label>
+                    <div class="input-wrapper">
+                        <input v-model="username" type="text" class="form-control" placeholder="Enter your username" required>
+                        <span class="input-icon">👤</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <div class="input-wrapper">
+                        <input v-model="password" type="password" class="form-control" placeholder="Enter your password" required>
+                        <span class="input-icon">🔒</span>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-login" :disabled="loading">
+                    <span v-if="loading">⏳ Logging in...</span>
+                    <span v-else>Login to Account</span>
+                </button>
+            </form>
+
+            <div class="register-link-section">
+                <p>
+                    Don't have an account yet?
+                    <a href="/register">Create one now</a>
+                </p>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/vue@3.3.4/dist/vue.global.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios@1.5.0/dist/axios.min.js"></script>
+
+<script>
+const { createApp } = Vue;
+
+createApp({
+    delimiters: ['[[', ']]'],
+
+    data() {
+        return {
+            username: "",
+            password: "",
+            errorMsg: "",
+            loading: false
+        };
+    },
+
+    methods: {
+        async handleLogin() {
+            this.errorMsg = "";
+            this.loading = true;
+
+            try {
+                const response = await axios.post("/api/login", {
+                    username: this.username,
+                    password: this.password
+                });
+
+                const { token, role } = response.data;
+
+                localStorage.setItem("token", token);
+                localStorage.setItem("role", role);
+                localStorage.setItem("username", this.username);
+
+                // REDIRECT FIX
+                if (role === "admin") {
+                    window.location.href = "/admin/lots";
+                } else {
+                    window.location.href = "/user";
+                }
+
+            } catch (error) {
+                this.errorMsg = error.response?.data?.error || "Invalid username or password";
+            } finally {
+                this.loading = false;
+            }
+        }
+    }
+}).mount("#app");
+</script>
+
+</body>
+</html>
