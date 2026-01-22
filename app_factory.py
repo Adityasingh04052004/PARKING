@@ -6,38 +6,50 @@ import os
 db = SQLAlchemy()
 cache = Cache()
 
+
 def create_app():
     app = Flask(__name__, template_folder="templates")
 
-    # BASIC CONFIG
-    app.config["SECRET_KEY"] = "CHANGE_THIS_SECRET_KEY"
+    # ✅ BASIC CONFIG (use env variables in deployment)
+    app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "CHANGE_THIS_SECRET_KEY")
 
     BASE_DIR = os.path.abspath(os.path.dirname(__file__))
-    db_path = os.path.join(BASE_DIR, "instance", "parking_v2.db")
-    app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{db_path}"
+
+    # ✅ Ensure instance folder exists (important for deployment)
+    instance_dir = os.path.join(BASE_DIR, "instance")
+    os.makedirs(instance_dir, exist_ok=True)
+
+    db_path = os.path.join(instance_dir, "parking_v2.db")
+    app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv(
+        "DATABASE_URL",
+        f"sqlite:///{db_path}"
+    )
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
-    # EMAIL CONFIG
-    app.config["MAIL_SERVER"] = "smtp.gmail.com"
-    app.config["MAIL_PORT"] = 587
-    app.config["MAIL_USE_TLS"] = True
-    
-    app.config["MAIL_USERNAME"] = "adityasinghnew45@gmail.com"  
-    app.config["MAIL_PASSWORD"] = "iysi mchi dtdl cvaf"     # 16-char App Password
+    # ✅ EMAIL CONFIG (NEVER hardcode in deployment)
+    app.config["MAIL_SERVER"] = os.getenv("MAIL_SERVER", "smtp.gmail.com")
+    app.config["MAIL_PORT"] = int(os.getenv("MAIL_PORT", 587))
+    app.config["MAIL_USE_TLS"] = os.getenv("MAIL_USE_TLS", "True") == "True"
 
-    # Default email sender
-    app.config["MAIL_DEFAULT_SENDER"] = app.config["MAIL_USERNAME"]
+    app.config["MAIL_USERNAME"] = os.getenv("MAIL_USERNAME", "")
+    app.config["MAIL_PASSWORD"] = os.getenv("MAIL_PASSWORD", "")
 
-    # CACHE CONFIG
+    app.config["MAIL_DEFAULT_SENDER"] = os.getenv(
+        "MAIL_DEFAULT_SENDER",
+        app.config["MAIL_USERNAME"]
+    )
+
+    # ✅ CACHE CONFIG (use cloud redis URL in deployment)
+    redis_url = os.getenv("REDIS_URL", "redis://localhost:6379/0")
     app.config["CACHE_TYPE"] = "RedisCache"
-    app.config["CACHE_REDIS_URL"] = "redis://localhost:6379/0"
+    app.config["CACHE_REDIS_URL"] = redis_url
     app.config["CACHE_DEFAULT_TIMEOUT"] = 30
 
-    # Init extensions
+    # ✅ Init extensions
     db.init_app(app)
     cache.init_app(app)
 
-    # Blueprint
+    # ✅ Blueprints
     from backend.routes import bp
     app.register_blueprint(bp)
 
