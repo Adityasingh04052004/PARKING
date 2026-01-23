@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify, render_template, current_app, sen
 from functools import wraps
 from datetime import datetime, timedelta
 import jwt
-
+import re
 from celery.result import AsyncResult
 from app_factory import db, cache
 from backend.models import User, ParkingLot, ParkingSpot, Reservation
@@ -22,6 +22,9 @@ def create_token(user):
     # PyJWT>=2 returns str, older returns bytes
     return token if isinstance(token, str) else token.decode("utf-8")
 
+def is_valid_email(email: str) -> bool:
+    pattern = r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$"
+    return re.match(pattern, email) is not None
 
 def token_required(f):
     @wraps(f)
@@ -84,16 +87,33 @@ def create_admin():
 @bp.route("/api/register", methods=["POST"])
 def register():
     data = request.json or {}
-    if not all(k in data for k in ("username", "email", "password")):
+
+    username = (data.get("username") or "").strip()
+    email = (data.get("email") or "").strip().lower()
+    password = (data.get("password") or "")
+
+    # ✅ Basic missing fields check
+    if not username or not email or not password:
         return jsonify({"error": "Missing fields"}), 400
 
-    if User.query.filter_by(username=data["username"]).first():
+    # ✅ Email validation
+    if not is_valid_email(email):
+        return jsonify({"error": "Invalid email format"}), 400
+
+    # ✅ password min length (optional but recommended)
+    if len(password) < 6:
+        return jsonify({"error": "Password must be at least 6 characters"}), 400
+
+    # ✅ Check duplicates
+    if User.query.filter_by(username=username).first():
         return jsonify({"error": "Username exists"}), 400
-    if User.query.filter_by(email=data["email"]).first():
+
+    if User.query.filter_by(email=email).first():
         return jsonify({"error": "Email exists"}), 400
 
-    user = User(username=data["username"], email=data["email"])
-    user.set_password(data["password"])
+    # ✅ Create user
+    user = User(username=username, email=email)
+    user.set_password(password)
     db.session.add(user)
     db.session.commit()
 
@@ -476,3 +496,4 @@ def user_book_page():
 @bp.route("/user/release")
 def user_release_page():
     return render_template("user_release.html")
+
