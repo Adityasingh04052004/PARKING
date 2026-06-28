@@ -287,7 +287,7 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
             width: 100%;
-            margin-bottom: 24px;
+            margin-bottom: 16px;
             box-shadow: 0 4px 15px rgba(0, 153, 255, 0.4);
             cursor: pointer;
         }
@@ -313,14 +313,41 @@
             z-index: 1;
         }
 
+        .register-link-section {
+            text-align: center;
+            margin-top: 12px;
+            margin-bottom: 16px;
+        }
+
+        .register-link-section p {
+            color: #6b7280;
+            font-size: 14px;
+            margin: 0;
+        }
+
+        .register-link-section a {
+            color: #0099ff;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin-left: 4px;
+            position: relative;
+        }
+
+        .register-link-section a:hover {
+            color: #0066ff;
+            text-decoration: underline;
+        }
+
         .divider-container {
             display: flex;
             align-items: center;
             text-align: center;
-            margin: 20px 0;
+            margin: 16px 0;
             color: #9ca3af;
-            font-size: 13px;
-            font-weight: 500;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
         }
 
         .divider-container::before,
@@ -338,15 +365,15 @@
             background: #f3f4f6;
             border: 2px solid #e5e7eb;
             border-radius: 12px;
-            padding: 14px;
+            padding: 12px;
             font-weight: 600;
-            font-size: 15px;
+            font-size: 14px;
             color: #374151;
             transition: all 0.3s ease;
             text-transform: uppercase;
             letter-spacing: 0.5px;
             width: 100%;
-            margin-bottom: 24px;
+            margin-bottom: 0;
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -364,12 +391,6 @@
         .btn-guest:disabled {
             opacity: 0.6;
             cursor: not-allowed;
-        }
-
-        .register-link-section {
-            text-align: center;
-            padding-top: 24px;
-            border-top: 1px solid #f0f0f0;
         }
 
         .register-link-section p {
@@ -526,6 +547,13 @@
                 </button>
             </form>
 
+            <div class="register-link-section">
+                <p>
+                    Don't have an account yet?
+                    <a href="/register">Create one now</a>
+                </p>
+            </div>
+
             <div class="divider-container">
                 <span>OR</span>
             </div>
@@ -534,13 +562,6 @@
                 <span v-if="guestLoading">⏳ Entering as Guest...</span>
                 <span v-else>🚀 Continue as Guest</span>
             </button>
-
-            <div class="register-link-section">
-                <p>
-                    Don't have an account yet?
-                    <a href="/register">Create one now</a>
-                </p>
-            </div>
 
         </div>
 
