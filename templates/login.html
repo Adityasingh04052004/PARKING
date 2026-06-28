@@ -313,6 +313,59 @@
             z-index: 1;
         }
 
+        .divider-container {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            margin: 20px 0;
+            color: #9ca3af;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .divider-container::before,
+        .divider-container::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .divider-container span {
+            padding: 0 12px;
+        }
+
+        .btn-guest {
+            background: #f3f4f6;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 14px;
+            font-weight: 600;
+            font-size: 15px;
+            color: #374151;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            width: 100%;
+            margin-bottom: 24px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-guest:hover:not(:disabled) {
+            background: #e5e7eb;
+            color: #111827;
+            border-color: #d1d5db;
+            transform: translateY(-2px);
+        }
+
+        .btn-guest:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
         .register-link-section {
             text-align: center;
             padding-top: 24px;
@@ -467,11 +520,20 @@
                     </div>
                 </div>
 
-                <button type="submit" class="btn-login" :disabled="loading">
+                <button type="submit" class="btn-login" :disabled="loading || guestLoading">
                     <span v-if="loading">⏳ Logging in...</span>
                     <span v-else>Login to Account</span>
                 </button>
             </form>
+
+            <div class="divider-container">
+                <span>OR</span>
+            </div>
+
+            <button type="button" class="btn-guest" @click="handleGuestLogin" :disabled="loading || guestLoading">
+                <span v-if="guestLoading">⏳ Entering as Guest...</span>
+                <span v-else>🚀 Continue as Guest</span>
+            </button>
 
             <div class="register-link-section">
                 <p>
@@ -499,7 +561,8 @@ createApp({
             username: "",
             password: "",
             errorMsg: "",
-            loading: false
+            loading: false,
+            guestLoading: false
         };
     },
 
@@ -531,6 +594,26 @@ createApp({
                 this.errorMsg = error.response?.data?.error || "Invalid username or password";
             } finally {
                 this.loading = false;
+            }
+        },
+
+        async handleGuestLogin() {
+            this.errorMsg = "";
+            this.guestLoading = true;
+
+            try {
+                const response = await axios.post("/api/guest-login");
+                const { token, role, username } = response.data;
+
+                localStorage.setItem("token", token);
+                localStorage.setItem("role", role);
+                localStorage.setItem("username", username);
+
+                window.location.href = "/user";
+            } catch (error) {
+                this.errorMsg = error.response?.data?.error || "Guest login failed";
+            } finally {
+                this.guestLoading = false;
             }
         }
     }

@@ -278,7 +278,7 @@
 
                 <div class="form-group">
                     <label class="form-label">Password</label>
-                    <input v-model="password" type="password" class="form-control" placeholder="At least 4 characters" required minlength="4">
+                    <input v-model="password" type="password" class="form-control" placeholder="At least 6 characters" required minlength="6">
                 </div>
 
                 <button type="submit" class="btn-register" :disabled="loading">
@@ -330,8 +330,15 @@ createApp({
             const email = this.email.trim();
             const password = this.password.trim();
 
-            if (password.length < 4) {
-                this.errorMsg = "Password must be at least 4 characters.";
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                this.errorMsg = "Please enter a valid email address.";
+                this.loading = false;
+                return;
+            }
+
+            if (password.length < 6) {
+                this.errorMsg = "Password must be at least 6 characters.";
                 this.loading = false;
                 return;
             }

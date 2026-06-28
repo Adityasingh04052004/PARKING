@@ -3,6 +3,7 @@ from functools import wraps
 from datetime import datetime, timedelta
 import jwt
 import re
+
 from celery.result import AsyncResult
 from app_factory import db, cache
 from backend.models import User, ParkingLot, ParkingSpot, Reservation
@@ -22,9 +23,6 @@ def create_token(user):
     # PyJWT>=2 returns str, older returns bytes
     return token if isinstance(token, str) else token.decode("utf-8")
 
-def is_valid_email(email: str) -> bool:
-    pattern = r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$"
-    return re.match(pattern, email) is not None
 
 def token_required(f):
     @wraps(f)
@@ -87,33 +85,23 @@ def create_admin():
 @bp.route("/api/register", methods=["POST"])
 def register():
     data = request.json or {}
-
-    username = (data.get("username") or "").strip()
-    email = (data.get("email") or "").strip().lower()
-    password = (data.get("password") or "")
-
-    # ✅ Basic missing fields check
-    if not username or not email or not password:
+    if not all(k in data for k in ("username", "email", "password")):
         return jsonify({"error": "Missing fields"}), 400
 
-    # ✅ Email validation
-    if not is_valid_email(email):
-        return jsonify({"error": "Invalid email format"}), 400
+    email_regex = r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$'
+    if not re.match(email_regex, data["email"]):
+        return jsonify({"error": "Please enter a valid email address"}), 400
 
-    # ✅ password min length (optional but recommended)
-    if len(password) < 6:
+    if len(data["password"]) < 6:
         return jsonify({"error": "Password must be at least 6 characters"}), 400
 
-    # ✅ Check duplicates
-    if User.query.filter_by(username=username).first():
+    if User.query.filter_by(username=data["username"]).first():
         return jsonify({"error": "Username exists"}), 400
-
-    if User.query.filter_by(email=email).first():
+    if User.query.filter_by(email=data["email"]).first():
         return jsonify({"error": "Email exists"}), 400
 
-    # ✅ Create user
-    user = User(username=username, email=email)
-    user.set_password(password)
+    user = User(username=data["username"], email=data["email"])
+    user.set_password(data["password"])
     db.session.add(user)
     db.session.commit()
 
@@ -128,6 +116,18 @@ def login():
         return jsonify({"error": "Invalid credentials"}), 401
 
     return jsonify({"token": create_token(user), "role": user.role})
+
+
+@bp.route("/api/guest-login", methods=["POST"])
+def guest_login():
+    guest_user = User.query.filter_by(username="guest_user").first()
+    if not guest_user:
+        guest_user = User(username="guest_user", email="guest@parking.com", role="user")
+        guest_user.set_password("guest123456")
+        db.session.add(guest_user)
+        db.session.commit()
+
+    return jsonify({"token": create_token(guest_user), "role": guest_user.role, "username": guest_user.username})
 
 
 # ----------------------------------------------------------
@@ -355,7 +355,13 @@ def user_lots(current_user):
 @bp.route("/api/user/book/<int:lot_id>", methods=["POST"])
 @token_required
 def book_spot(current_user, lot_id):
-    spot = ParkingSpot.query.filter_by(lot_id=lot_id, status="A").first()
+    # 1. Prevent same user from booking multiple active spots concurrently
+    existing_res = Reservation.query.filter_by(user_id=current_user.id, leaving_timestamp=None).first()
+    if existing_res:
+        return jsonify({"error": "You already have an active parking reservation"}), 400
+
+    # 2. Use with_for_update() to lock row/table and prevent race conditions between concurrent users
+    spot = ParkingSpot.query.filter_by(lot_id=lot_id, status="A").with_for_update().first()
     if not spot:
         return jsonify({"error": "No free spots"}), 400
 
@@ -369,6 +375,7 @@ def book_spot(current_user, lot_id):
     db.session.commit()
 
     return jsonify({"reservation_id": res.id, "spot_id": spot.id})
+
 
 
 @bp.route("/api/user/release/<int:reservation_id>", methods=["POST"])
@@ -496,4 +503,3 @@ def user_book_page():
 @bp.route("/user/release")
 def user_release_page():
     return render_template("user_release.html")
-
